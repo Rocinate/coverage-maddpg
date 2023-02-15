@@ -3,6 +3,7 @@
 # Name: MADDPG_torch
 # File func: main func
 import os
+import pickle
 import time
 import torch
 import numpy as np
@@ -25,9 +26,9 @@ def make_env(scenario_name, arglist):
     if arglist.benchmark:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
-        # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-        #                     done_callback=scenario.done)
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
+        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
+                            done_callback=scenario.done)
+        # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
 
@@ -251,7 +252,10 @@ def train(arglist):
                 torch.save(a_t, os.path.join(model_file_dir, 'a_t_{}.pt'.format(agent_idx)))
                 torch.save(c_c, os.path.join(model_file_dir, 'c_c_{}.pt'.format(agent_idx)))
                 torch.save(c_t, os.path.join(model_file_dir, 'c_t_{}.pt'.format(agent_idx)))
-
+    # save the curves
+    rew_file_name = arglist.scenario_name + '_rewards.pkl'
+    with open(rew_file_name, 'wb') as fp:
+        pickle.dump(episode_rewards, fp)
 
 if __name__ == '__main__':
     arg = parse_args()
