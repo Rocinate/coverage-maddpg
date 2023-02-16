@@ -84,7 +84,7 @@ def update_train_tar(agents_cur, agents_tar, tau):
 
 def agents_train(arglist, game_step, update_cnt, memory, obs_size, action_size, actors_cur, actors_tar, critics_cur,
                  critics_tar, optimizers_a, optimizers_c):
-    """ 
+    """
     use this func to make the "main" func clean
     par:
     |input: the data for training
@@ -224,7 +224,7 @@ def train(arglist):
             for i, rew in enumerate(rew_n):
                 agent_rewards[i][-1] += rew
 
-            # train our agents 
+            # train our agents
             update_cnt, actors_cur, actors_tar, critics_cur, critics_tar = agents_train(
                 arglist, game_step, update_cnt, memory, obs_size, action_size,
                 actors_cur, actors_tar, critics_cur, critics_tar, optimizers_a, optimizers_c)
@@ -263,19 +263,18 @@ def train(arglist):
                 torch.save(c_c, os.path.join(model_file_dir, 'c_c_{}.pt'.format(agent_idx)))
                 torch.save(c_t, os.path.join(model_file_dir, 'c_t_{}.pt'.format(agent_idx)))
     # save the curves
-    rew_file_name = './learning_curves/' + arglist.scenario_name + '_rewards.pkl'
+    rew_file_name = arglist.scenario_name + '_rewards.pkl'
     with open(rew_file_name, 'wb') as fp:
         pickle.dump(episode_rewards, fp)
-    game_step_file_name = './learning_curves/' + arglist.scenario_name + '_game_steps.pkl'
+    game_step_file_name = arglist.scenario_name + '_game_steps.pkl'
     with open(game_step_file_name, 'wb') as fp:
         pickle.dump(game_step_per_episode, fp)
-    connected_file_name = './learning_curves/' + arglist.scenario_name + '_connected.pkl'
+    connected_file_name = arglist.scenario_name + '_connected.pkl'
     with open(connected_file_name, 'wb') as fp:
         pickle.dump(is_connected_h, fp)
-    collision_file_name = './learning_curves/' + arglist.scenario_name + '_collision.pkl'
+    collision_file_name = arglist.scenario_name + '_collision.pkl'
     with open(collision_file_name, 'wb') as fp:
         pickle.dump(is_collision_h, fp)
-
 
 if __name__ == '__main__':
     arg = parse_args()

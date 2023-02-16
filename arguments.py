@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument("--scenario_name", type=str, default="simple_coverage", help="name of the scenario script")
     parser.add_argument("--start_time", type=str, default=time_now, help="the time when start the game")
     parser.add_argument("--max_episode_len", type=int, default=50, help="maximum episode length")
-    parser.add_argument("--max_episode", type=int, default=10000, help="maximum episode length")
+    parser.add_argument("--max_episode", type=int, default=20000, help="maximum episode length")
     parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
 
     # core training parameters
