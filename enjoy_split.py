@@ -15,14 +15,14 @@ def make_env(scenario_name, arglist):
     """
     create the environment from script
     """
-    scenario = scenarios.load(scenario_name + ".py").Scenario()
+    scenario = scenarios.load(scenario_name + ".py").Scenario(evaluate=True)
     world = scenario.make_world()
     if arglist.benchmark:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
-        # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-        #                     done_callback=scenario.done)
-        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
+        env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
+                            done_callback=scenario.done)
+        # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
 

@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument("--fre_save_model", type=int, default=2000, help="the number of the episode for saving the model")
     parser.add_argument("--save_dir", type=str, default="models", help="directory in which training state and model \
     should be saved")
-    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0215_201643_4000/", help="directory in \
+    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0216_154334_10000/", help="directory in \
     which training state and model are loaded")
 
     # evaluation

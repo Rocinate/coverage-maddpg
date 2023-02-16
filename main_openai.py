@@ -27,7 +27,7 @@ def make_env(scenario_name, arglist):
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-                            done_callback=scenario.done)
+                            done_callback=scenario.done, info_callback=scenario.info)
         # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
@@ -176,6 +176,8 @@ def train(arglist):
     episode_rewards = [0.0]  # sum of rewards for all agents
     agent_rewards = [[0.0] for _ in range(env.n)]  # individual agent reward
     game_step_per_episode = []
+    is_collision_h = []
+    is_connected_h = []
     head_o, head_a, end_o, end_a = 0, 0, 0, 0
     for obs_shape, action_shape in zip(obs_shape_n, action_shape_n):
         end_o = end_o + obs_shape
@@ -198,12 +200,16 @@ def train(arglist):
             end_time = time.time()
             mean_ep_r = round(np.mean(episode_rewards[-500:-1]), 3)
             mean_step = round(np.mean(game_step_per_episode[-500:-1]), 3)
-            print('=Training: steps:{} episode:{} reward:{} step:{} time:{}'.format(game_step, episode_gone,
-                                                                                    mean_ep_r, mean_step,
-                                                                                    int(end_time - start_time)))
+            mean_connected_rate = round(np.mean(is_connected_h[-500:-1]), 3)
+            mean_collision_rate = round(np.mean(is_collision_h[-500:-1]), 3)
+            print('=Training: steps:{} episode:{} reward:{} step:{} connected:{} collision:{} time:{}'
+                  .format(game_step, episode_gone, mean_ep_r, mean_step, mean_connected_rate, mean_collision_rate,
+                          int(end_time - start_time)))
             # mean_agents_r = [round(np.mean(agent_rewards[idx][-500:-1]), 2) for idx in range(env.n)]
             # print('Agent reward:{}'.format(mean_agents_r))
         game_step_cur = 0
+        is_collision = False
+        is_connected = True
         for episode_cnt in range(arglist.max_episode_len):
             # get action
             action_n = [agent(torch.from_numpy(obs).to(arglist.device, torch.float)).detach().cpu().numpy()
@@ -228,12 +234,16 @@ def train(arglist):
             game_step_cur +=1
             obs_n = obs_n_t
             done = all(done_n)
+            is_collision = is_collision or any([info_n[i]['collision'] for i in range(env.n)])
+            is_connected = is_connected and all([info_n[i]['connected'] for i in range(env.n)])
             terminal = (episode_cnt >= arglist.max_episode_len - 1)
             if done or terminal:
                 obs_n = env.reset()
                 agent_info.append([[]])
                 episode_rewards.append(0)
                 game_step_per_episode.append(game_step_cur)
+                is_connected_h.append(int(is_connected))
+                is_collision_h.append(int(is_collision))
                 for a_r in agent_rewards:
                     a_r.append(0)
                 break
@@ -253,9 +263,19 @@ def train(arglist):
                 torch.save(c_c, os.path.join(model_file_dir, 'c_c_{}.pt'.format(agent_idx)))
                 torch.save(c_t, os.path.join(model_file_dir, 'c_t_{}.pt'.format(agent_idx)))
     # save the curves
-    rew_file_name = arglist.scenario_name + '_rewards.pkl'
+    rew_file_name = './learning_curves/' + arglist.scenario_name + '_rewards.pkl'
     with open(rew_file_name, 'wb') as fp:
         pickle.dump(episode_rewards, fp)
+    game_step_file_name = './learning_curves/' + arglist.scenario_name + '_game_steps.pkl'
+    with open(game_step_file_name, 'wb') as fp:
+        pickle.dump(game_step_per_episode, fp)
+    connected_file_name = './learning_curves/' + arglist.scenario_name + '_connected.pkl'
+    with open(connected_file_name, 'wb') as fp:
+        pickle.dump(is_connected_h, fp)
+    collision_file_name = './learning_curves/' + arglist.scenario_name + '_collision.pkl'
+    with open(collision_file_name, 'wb') as fp:
+        pickle.dump(is_collision_h, fp)
+
 
 if __name__ == '__main__':
     arg = parse_args()
