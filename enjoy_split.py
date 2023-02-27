@@ -21,7 +21,7 @@ def make_env(scenario_name, arglist):
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-                            done_callback=scenario.done)
+                            done_callback=scenario.done, info_callback=scenario.info)
         # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
@@ -48,6 +48,8 @@ def enjoy(arglist):
 
     """ interact with the env """
     obs_n = env.reset()
+    is_collision = False
+    is_connected = True
     while (1):
 
         # update the episode step number
@@ -63,6 +65,8 @@ def enjoy(arglist):
         obs_n, rew_n, done_n, info_n = env.step(action_n)
 
         # update the flag
+        is_collision = is_collision or any([info_n[i]['collision'] for i in range(env.n)])
+        is_connected = is_connected and all([info_n[i]['connected'] for i in range(env.n)])
         done = all(done_n)
         terminal = (episode_step >= arglist.max_episode_len)
 
@@ -70,9 +74,12 @@ def enjoy(arglist):
         if done or terminal:
             episode_step = 0
             obs_n = env.reset()
+            print('collision:{} connected:{}'.format(is_collision, is_connected))
+            is_collision = False
+            is_connected = True
 
         # render the env
-        print(rew_n)
+
         env.render()
         time.sleep(0.1)
 
