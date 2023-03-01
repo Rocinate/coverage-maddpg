@@ -196,6 +196,9 @@ def train(arglist):
 
     for episode_gone in range(arglist.max_episode):
         # cal the reward print the debug data
+        # end_time = time.time()
+        # print(int(end_time - start_time))
+        print(episode_gone)
         if game_step > 1 and episode_gone % 500 == 0:
             end_time = time.time()
             mean_ep_r = round(np.mean(episode_rewards[-500:-1]), 3)
@@ -237,6 +240,8 @@ def train(arglist):
             is_collision = is_collision or any([info_n[i]['collision'] for i in range(env.n)])
             is_connected = is_connected and all([info_n[i]['connected'] for i in range(env.n)])
             terminal = (episode_cnt >= arglist.max_episode_len - 1)
+            # env.render()
+            # time.sleep(0.01)
             if done or terminal:
                 obs_n = env.reset()
                 agent_info.append([[]])
