@@ -21,7 +21,7 @@ def make_env(scenario_name, arglist):
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-                            done_callback=scenario.done, info_callback=scenario.info)
+                            done_callback=scenario.done, info_callback=scenario.info, safe_control=False)
         # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
@@ -35,7 +35,7 @@ def get_trainers(env, arglist):
 
 
 def enjoy(arglist):
-    """ 
+    """
     This func is used for testing the model
     """
 
@@ -62,7 +62,7 @@ def enjoy(arglist):
             action_n.append(F.softmax(model_out, dim=-1).detach().cpu().numpy())
 
         # interact with env
-        obs_n, rew_n, done_n, info_n = env.step(action_n)
+        _, obs_n, rew_n, done_n, info_n = env.step(action_n)
 
         # update the flag
         is_collision = is_collision or any([info_n[i]['collision'] for i in range(env.n)])

@@ -27,7 +27,7 @@ def make_env(scenario_name, arglist):
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation, scenario.benchmark_data)
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
-                            done_callback=scenario.done, info_callback=scenario.info)
+                            done_callback=scenario.done, info_callback=scenario.info, safe_control=arglist.safe_control)
         # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
@@ -139,6 +139,8 @@ def agents_train(arglist, game_step, update_cnt, memory, obs_size, action_size, 
             nn.utils.clip_grad_norm_(actor_c.parameters(), arglist.max_grad_norm)
             opt_a.step()
 
+
+
         # update the target network
         actors_tar = update_train_tar(actors_cur, actors_tar, arglist.tau)
         critics_tar = update_train_tar(critics_cur, critics_tar, arglist.tau)
@@ -196,9 +198,6 @@ def train(arglist):
 
     for episode_gone in range(arglist.max_episode):
         # cal the reward print the debug data
-        # end_time = time.time()
-        # print(int(end_time - start_time))
-        print(episode_gone)
         if game_step > 1 and episode_gone % 500 == 0:
             end_time = time.time()
             mean_ep_r = round(np.mean(episode_rewards[-500:-1]), 3)
@@ -219,10 +218,12 @@ def train(arglist):
                         for agent, obs in zip(actors_cur, obs_n)]
 
             # interact with env
-            obs_n_t, rew_n, done_n, info_n = env.step(action_n)
+            action_n, obs_n_t, rew_n, done_n, info_n = env.step(action_n)
 
             # save the experience
-            memory.add(obs_n, np.concatenate(action_n), rew_n, obs_n_t, done_n)
+            if not any([info_n[i]['collision'] for i in range(env.n)]) and all(
+                    [info_n[i]['connected'] for i in range(env.n)]):
+                memory.add(obs_n, np.concatenate(action_n), rew_n, obs_n_t, done_n)
             episode_rewards[-1] += np.sum(rew_n)
             for i, rew in enumerate(rew_n):
                 agent_rewards[i][-1] += rew
@@ -241,7 +242,7 @@ def train(arglist):
             is_connected = is_connected and all([info_n[i]['connected'] for i in range(env.n)])
             terminal = (episode_cnt >= arglist.max_episode_len - 1)
             # env.render()
-            # time.sleep(0.01)
+            # time.sleep(0.1)
             if done or terminal:
                 obs_n = env.reset()
                 agent_info.append([[]])
