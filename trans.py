@@ -2,7 +2,7 @@ import pickle
 import pandas as pd
 import os
 
-os.chdir('./learning_curves')
+os.chdir('./learning_curves/safe_3')
 for root, dirs, file in os.walk('.'):
     for path in file:
         if 'pkl' in path:

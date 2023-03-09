@@ -16,13 +16,14 @@ def parse_args():
     # environment
     parser.add_argument("--scenario_name", type=str, default="simple_coverage", help="name of the scenario script")
     parser.add_argument("--start_time", type=str, default=time_now, help="the time when start the game")
-    parser.add_argument("--max_episode_len", type=int, default=100, help="maximum episode length")
+    parser.add_argument("--max_episode_len", type=int, default=50, help="maximum episode length")
     parser.add_argument("--max_episode", type=int, default=20000, help="maximum episode length")
     parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
 
     # core training parameters
     parser.add_argument("--device", default=device, help="torch device ")
-    parser.add_argument("--learning_start_step", type=int, default=100000, help="learning start steps")
+    parser.add_argument("--safe_control", type=bool, default=True, help="adopt the CBF ")
+    parser.add_argument("--learning_start_step", type=int, default=10000, help="learning start steps")
     parser.add_argument("--max_grad_norm", type=float, default=0.5, help="max gradient norm for clip")
     parser.add_argument("--learning_fre", type=int, default=100, help="learning frequency")
     parser.add_argument("--tau", type=int, default=0.01, help="how depth we exchange the par of the nn")
@@ -39,7 +40,7 @@ def parse_args():
     parser.add_argument("--fre_save_model", type=int, default=2000, help="the number of the episode for saving the model")
     parser.add_argument("--save_dir", type=str, default="models", help="directory in which training state and model \
     should be saved")
-    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0302_012219_20000/", help="directory in \
+    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0307_141936_20000/", help="directory in \
     which training state and model are loaded")
 
     # evaluation
