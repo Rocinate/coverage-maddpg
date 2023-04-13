@@ -6,7 +6,7 @@ import time
 import torch
 import argparse
 
-device = torch.device('cuda:0') if torch.cuda.is_available() else torch.device('cpu')
+device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
 time_now = time.strftime('%y%m_%d%H%M')
 
 
@@ -17,7 +17,7 @@ def parse_args():
     parser.add_argument("--scenario_name", type=str, default="simple_coverage", help="name of the scenario script")
     parser.add_argument("--start_time", type=str, default=time_now, help="the time when start the game")
     parser.add_argument("--max_episode_len", type=int, default=50, help="maximum episode length")
-    parser.add_argument("--max_episode", type=int, default=20000, help="maximum episode length")
+    parser.add_argument("--max_episode", type=int, default=10000, help="maximum episode length")
     parser.add_argument("--num-adversaries", type=int, default=0, help="number of adversaries")
 
     # core training parameters
@@ -37,19 +37,18 @@ def parse_args():
     parser.add_argument("--num_units_openai", type=int, default=128, help="number of units in the mlp")
 
     # checkpointing
-    parser.add_argument("--fre_save_model", type=int, default=2000, help="the number of the episode for saving the model")
+    parser.add_argument("--fre_save_model", type=int, default=2000,
+                        help="the number of the episode for saving the model")
     parser.add_argument("--save_dir", type=str, default="models", help="directory in which training state and model \
     should be saved")
-    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0307_141936_20000/", help="directory in \
-    which training state and model are loaded")
-
-    # evaluation
+    parser.add_argument("--old_model_name", type=str, default="models/simple_coverage_0307_141936_20000/",
+                        help="directory in which training state and model are loaded")
     parser.add_argument("--restore", action="store_true", default=False)
-    parser.add_argument("--display", action="store_true", default=False)
     parser.add_argument("--benchmark", action="store_true", default=False)
-    parser.add_argument("--benchmark-iters", type=int, default=100000, help="number of iterations run for benchmarking")
-    parser.add_argument("--benchmark-dir", type=str, default="./benchmark_files/", \
-            help="directory where benchmark data is saved")
-    parser.add_argument("--plots-dir", type=str, default="./learning_curves/", \
-            help="directory where plot data is saved")
+    # evaluation
+    parser.add_argument("--model_name", type=str, default="models/simple_coverage_0302_115811_20000/",
+                        help="directory in which evaluated model is loaded")
+    parser.add_argument("--save_pos", type=bool, default=False)
+    parser.add_argument("--display", type=bool, default=True)
+    parser.add_argument("--plots-dir", type=str, default="./learning_curves/", help="directory where plot data is saved")
     return parser.parse_args()

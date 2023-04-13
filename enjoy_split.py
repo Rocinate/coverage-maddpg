@@ -5,6 +5,8 @@ import torch
 import torch.nn.functional as F
 import multiagent.scenarios as scenarios
 from multiagent.environment import MultiAgentEnv
+import numpy as np
+import pickle
 import time
 
 from model import actor_agent, critic_agent
@@ -28,7 +30,7 @@ def make_env(scenario_name, arglist):
 
 def get_trainers(env, arglist):
     """ load the model """
-    actors_tar = [torch.load(arglist.old_model_name + 'a_c_{}.pt'.format(agent_idx), map_location=arglist.device)
+    actors_tar = [torch.load(arglist.model_name + 'a_c_{}.pt'.format(agent_idx), map_location=arglist.device)
                   for agent_idx in range(env.n)]
 
     return actors_tar
@@ -38,7 +40,7 @@ def enjoy(arglist):
     """
     This func is used for testing the model
     """
-
+    np.random.seed(1)
     episode_step = 0
     """ init the env """
     env = make_env(arglist.scenario_name, arglist)
@@ -50,8 +52,14 @@ def enjoy(arglist):
     obs_n = env.reset()
     is_collision = False
     is_connected = True
-    while (1):
-
+    test_time = 100
+    connect_time = 0
+    collision_time = 0
+    episode = 0
+    trajectory = []
+    coverage_time = 0
+    coverage_time_h = []
+    while True:
         # update the episode step number
         episode_step += 1
 
@@ -60,30 +68,50 @@ def enjoy(arglist):
         for actor, obs in zip(actors_tar, obs_n):
             model_out, _ = actor(torch.from_numpy(obs).to(arglist.device, torch.float), model_original_out=True)
             action_n.append(F.softmax(model_out, dim=-1).detach().cpu().numpy())
-
+        if arglist.save_pos:
+            pos = np.array([])
+            for k in env.world.agents:
+                pos = np.append(pos, k.state.p_pos)
+            trajectory.append(pos)
         # interact with env
         _, obs_n, rew_n, done_n, info_n = env.step(action_n)
 
         # update the flag
         is_collision = is_collision or any([info_n[i]['collision'] for i in range(env.n)])
         is_connected = is_connected and all([info_n[i]['connected'] for i in range(env.n)])
+        if all([info_n[i]['coverage'] for i in range(env.n)]):
+            coverage_time = coverage_time + 1
+        if any([info_n[i]['collision'] for i in range(env.n)]):
+            collision_time = collision_time + 1
+        if all([info_n[i]['connected'] for i in range(env.n)]):
+            connect_time = connect_time + 1
         done = all(done_n)
         terminal = (episode_step >= arglist.max_episode_len)
 
         # reset the env
         if done or terminal:
+            episode = episode + 1
             episode_step = 0
             obs_n = env.reset()
-            print('collision:{} connected:{}'.format(is_collision, is_connected))
+            coverage_time_h.append(coverage_time)
+            print('collision:{} connected:{} coverage:{}'.format(is_collision, is_connected, coverage_time))
+            coverage_time = 0
             is_collision = False
             is_connected = True
-
         # render the env
-
-        env.render()
-        time.sleep(0.1)
-
-
+        if arglist.display:
+            env.render()
+            time.sleep(0.1)
+        if episode >= test_time:
+            break
+    if arglist.save_pos:
+        file_name = arglist.plots_dir + 'trajectory_save' + '.pkl'
+        with open(file_name, 'wb') as fp:
+            pickle.dump(trajectory, fp)
+    print('Total collision:{} connected:{} coverage:{} in {} test'.format(collision_time/(episode*arglist.max_episode_len),
+                                                                          connect_time/(episode*arglist.max_episode_len),
+                                                                          np.mean(coverage_time_h),
+                                                                          episode))
 if __name__ == '__main__':
     arglist = parse_args()
     enjoy(arglist)
