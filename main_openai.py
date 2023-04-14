@@ -318,4 +318,5 @@ def train(arglist):
 
 if __name__ == '__main__':
     arg = parse_args()
-    cProfile.run(train(arg))
+    train(arg)
+    # cProfile.run("train(arg)", "stats")
