@@ -3,3 +3,4 @@ __pycache__
 models
 learning_curves
 *.pkl
+stats

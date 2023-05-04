@@ -29,7 +29,7 @@ def parse_args():
     parser.add_argument("--tau", type=int, default=0.01, help="how depth we exchange the par of the nn")
     parser.add_argument("--lr_a", type=float, default=0.002, help="learning rate for adam optimizer")
     parser.add_argument("--lr_c", type=float, default=0.002, help="learning rate for adam optimizer")
-    parser.add_argument("--gamma", type=float, default=0.95, help="discount factor")
+    parser.add_argument("--gamma", type=float, default=0.99, help="discount factor")
     parser.add_argument("--batch_size", type=int, default=1024, help="number of episodes to optimize at the same time")
     parser.add_argument("--memory_size", type=int, default=1e6, help="number of data stored in the memory")
     parser.add_argument("--num_units_1", type=int, default=128, help="number of units in the mlp")
@@ -46,7 +46,7 @@ def parse_args():
     parser.add_argument("--restore", action="store_true", default=False)
     parser.add_argument("--benchmark", action="store_true", default=False)
     # evaluation
-    parser.add_argument("--model_name", type=str, default="models/simple_coverage_0302_115811_20000/",
+    parser.add_argument("--model_name", type=str, default="models/connect_strange/",
                         help="directory in which evaluated model is loaded")
     parser.add_argument("--save_pos", type=bool, default=False)
     parser.add_argument("--display", type=bool, default=True)
