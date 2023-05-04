@@ -1,6 +1,7 @@
-import pickle
-import pandas as pd
 import os
+import pickle
+
+import pandas as pd
 
 os.chdir('./learning_curves/safe_4')
 for root, dirs, file in os.walk('.'):

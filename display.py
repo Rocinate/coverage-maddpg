@@ -1,16 +1,13 @@
-import os
-import sys
-
-import torch
-import torch.nn.functional as F
-import multiagent.scenarios as scenarios
-from multiagent.environment import MultiAgentEnv
-import numpy as np
 import pickle
 import time
 
-from model import actor_agent, critic_agent
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+import multiagent.scenarios as scenarios
 from arguments import parse_args
+from multiagent.environment import MultiAgentEnv
 
 
 def make_env(scenario_name, arglist):

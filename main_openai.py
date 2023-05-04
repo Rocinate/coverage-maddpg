@@ -5,17 +5,17 @@
 import os
 import pickle
 import time
-import torch
+
 import numpy as np
+import torch
 import torch.nn as nn
 import torch.optim as optim
 
+import multiagent.scenarios as scenarios
 from arguments import parse_args
-from replay_buffer import ReplayBuffer
 from model import openai_actor, openai_critic
 from multiagent.environment import MultiAgentEnv
-import multiagent.scenarios as scenarios
-import cProfile
+from replay_buffer import ReplayBuffer
 
 
 def make_env(scenario_name, arglist):

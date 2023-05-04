@@ -1,13 +1,12 @@
 import math
 
 import gym
-from gym import spaces
-from scipy.spatial.distance import pdist, squareform
-from gym.envs.registration import EnvSpec
 import numpy as np
-from multiagent.multi_discrete import MultiDiscrete
-from qpsolvers import solve_qp
+from gym import spaces
 from scipy.optimize import minimize
+from scipy.spatial.distance import pdist, squareform
+
+from multiagent.multi_discrete import MultiDiscrete
 
 
 # environment for all agents in the multiagent world
@@ -100,11 +99,13 @@ class MultiAgentEnv(gym.Env):
     def connect_contriant(self, beta, speed_n, trans_mat, dt, h0):
         def v(u):
             return np.dot(beta.T, speed_n) + dt * np.dot(np.dot(beta.T, trans_mat), u) + h0
+
         return v
 
     def collision_contriant(self, G_p, h_p):
         def v(u):
             return np.dot(G_p, u) + h_p
+
         return v
 
     def step(self, action_n):
@@ -445,7 +446,6 @@ class MultiAgentEnv(gym.Env):
 
         results = []
         for i in range(len(self.viewers)):
-            from multiagent import rendering
             # update bounds to center around agent
             cam_range = 1.2
             if self.shared_viewer:
@@ -461,7 +461,8 @@ class MultiAgentEnv(gym.Env):
             # 更新覆盖点颜色
             n = len(self.world.agents)
             for e, landmark in enumerate(self.world.landmarks):
-                self.render_geoms[2 * n + e + 4].set_color(*np.array([255, 0, 255]), alpha=landmark.state.energy/landmark.state.coverpointE)
+                self.render_geoms[2 * n + e + 4].set_color(*np.array([255, 0, 255]),
+                                                           alpha=landmark.state.energy / landmark.state.coverpointE)
 
             # render to display or array
             results.append(self.viewers[i].render(return_rgb_array=mode == 'rgb_array'))

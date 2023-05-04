@@ -182,11 +182,11 @@ class Scenario(BaseScenario):
         self.energy[needToBeCover] -= 1
         # 更新待覆盖点状态，方便进行查看
         for i, _ in enumerate(needToBeCover):
-            world.landmarks[i].state.energy -= 1
+            if needToBeCover[i]:
+                world.landmarks[i].state.energy -= 1
 
         # 返回此次覆盖的点位数量
         return np.sum(needToBeCover) * self.coverRew + doneCount * self.doneRew
-        # return np.sum(needToBeCover) * self.coverRew
 
     def reward(self, agent, world):
         self.connected = True

@@ -1,5 +1,7 @@
-import numpy as np
 import random
+
+import numpy as np
+
 
 class ReplayBuffer(object):
     def __init__(self, size):
@@ -31,9 +33,9 @@ class ReplayBuffer(object):
             self._storage[self._next_idx] = data
         self._next_idx = (self._next_idx + 1) % self._maxsize
 
-    def _encode_sample(self, idxes, agent_idx):
+    def _encode_sample(self, index, agent_idx):
         obses_t, actions, rewards, obses_tp1, dones = [], [], [], [], []
-        for i in idxes:
+        for i in index:
             data = self._storage[i]
             obs_t, action, reward, obs_tp1, done = data
             obses_t.append(np.concatenate(obs_t[:]))
@@ -51,8 +53,8 @@ class ReplayBuffer(object):
         np.random.shuffle(idx)
         return idx
 
-    def sample_index(self, idxes):
-        return self._encode_sample(idxes)
+    def sample_index(self, index):
+        return self._encode_sample(index)
 
     def sample(self, batch_size, agent_idx):
         """Sample a batch of experiences.
@@ -77,10 +79,10 @@ class ReplayBuffer(object):
             the end of an episode and 0 otherwise.
         """
         if batch_size > 0:
-            idxes = self.make_index(batch_size)
+            index = self.make_index(batch_size)
         else:
-            idxes = range(0, len(self._storage))
-        return self._encode_sample(idxes, agent_idx)
+            index = range(0, len(self._storage))
+        return self._encode_sample(index, agent_idx)
 
     def collect(self):
         return self.sample(-1)
