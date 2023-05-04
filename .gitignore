@@ -4,3 +4,6 @@ models
 learning_curves
 *.pkl
 stats
+multiagent/multiagent.egg-info
+multiagent/__pycache__
+multiagent/scenarios/__pycache__
