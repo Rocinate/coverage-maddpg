@@ -114,6 +114,7 @@ class MultiAgentEnv(gym.Env):
         done_n = []
         info_n = []
         self.agents = self.world.policy_agents
+
         if self.safe_control:
             # safe control
             # cal the beta and h0

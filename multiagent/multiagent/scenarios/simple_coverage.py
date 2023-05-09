@@ -16,7 +16,6 @@ class Scenario(BaseScenario):
         self.evaluate = evaluate  # parameter for whether the initial states is same
         # load the map
         self.pos = None  # position of coverpoint
-        self.energy = None # energy of coverpoint
         self.obstacle = None # obstacle pos
 
         self.dx = 0.1
@@ -74,8 +73,6 @@ class Scenario(BaseScenario):
 
         # 随机生成待覆盖点位位置并更新待覆盖点能量
         self.pos = np.random.uniform(-0.6, +0.6, (self.coverCount, 2))
-        self.energy = np.array(
-            [self.coverpointE for _ in range(self.coverCount)])
 
         # 生成圆形障碍物位置，当前为固定模式
         for i, landmarks in enumerate(world.landmarks):
@@ -87,8 +84,7 @@ class Scenario(BaseScenario):
             else:
                 # 障碍物
                 landmarks.state.p_pos = self.pos[i]
-                landmarks.energy = self.energy[i]
-
+                # landmarks.energy = self.energy[i]
 
         for agent in world.agents:
             agent.state.p_pos = np.random.uniform(
@@ -166,27 +162,15 @@ class Scenario(BaseScenario):
 
     # 计算当前agent覆盖的点位，更新点位信息
     def cover(self, agent, world):
-        # 计算距离信息
-        diff = np.linalg.norm(self.pos - agent.state.p_pos, axis=1)
-
         # 得到在覆盖范围内的点位
-        inRangeIndex = diff < self.r
-        print(np.sum(inRangeIndex), diff)
-        # 得到有效覆盖位置（能量不为0，在覆盖范围内）
-        needToBeCover = np.logical_and(self.energy != 0, inRangeIndex)
+        energyDiff = np.array([landmark.state.diff for landmark in world.landmarks])
+        energy = np.array([landmark.state.energy for landmark in world.landmarks])
 
         # 对覆盖完全的点位进行额外奖励
-        doneCount = np.sum(self.energy[needToBeCover] == 1)
-
-        # 更新覆盖点能量
-        self.energy[needToBeCover] -= 1
-        # 更新待覆盖点状态，方便进行查看
-        for i, _ in enumerate(needToBeCover):
-            if needToBeCover[i]:
-                world.landmarks[i].state.energy -= 1
+        doneCount = np.sum(np.logical_and(energyDiff > 0, energy == 0))
 
         # 返回此次覆盖的点位数量
-        return np.sum(needToBeCover) * self.coverRew + doneCount * self.doneRew
+        return np.sum(energyDiff) * self.coverRew + doneCount * self.doneRew
 
     def reward(self, agent, world):
         self.connected = True
@@ -205,35 +189,34 @@ class Scenario(BaseScenario):
         sorted_index = np.argsort(dists)
 
         for i in sorted_index:
-            if self.energy[i] > 0:
-                # 加大数量级
-                rew -= dists[i] * 10
+            if world.landmarks[i].state.energy > 0:
+                rew += (1 - dists[i] / 2) * 10
                 break
 
-        lamed2 = self.cal_laplace(world)
-        lamed2_th = 0.1  # lamed2's threshold
-        if lamed2 >= lamed2_th:
-            rew -= 0
-        elif lamed2 > 0:
-            rew -= 5
-        else:
-            rew -= 10
-            self.connected = False
+        # lamed2 = self.cal_laplace(world)
+        # lamed2_th = 0.1  # lamed2's threshold
+        # if lamed2 >= lamed2_th:
+        #     rew -= 0
+        # elif lamed2 > 0:
+        #     rew -= 5
+        # else:
+        #     rew -= 10
+        #     self.connected = False
 
         # 获得覆盖奖励
         rew += self.cover(agent, world)
 
-        for a in world.agents:
-            if a is not agent:
-                dist = np.sqrt(
-                    np.sum(np.square(a.state.p_pos - agent.state.p_pos)))
-                if dist >= 2*self.r:
-                    rew += 0
-                elif dist >= 2*self.agentSize:
-                    rew -= 5
-                else:
-                    rew -= 10
-                    self.collision = True
+        # for a in world.agents:
+        #     if a is not agent:
+        #         dist = np.sqrt(
+        #             np.sum(np.square(a.state.p_pos - agent.state.p_pos)))
+        #         if dist >= 2*self.r:
+        #             rew += 0
+        #         elif dist >= 2*self.agentSize:
+        #             rew -= 5
+        #         else:
+        #             rew -= 10
+        #             self.collision = True
         return rew
 
     def observation(self, agent, world):
@@ -247,9 +230,15 @@ class Scenario(BaseScenario):
             other_speed.append(other.state.p_vel - agent.state.p_vel)
 
         # 计算距离信息
-        diff = np.linalg.norm(self.pos - agent.state.p_pos, axis=1)
+        diff = self.pos - agent.state.p_pos
+        diffVec = []
+        for vec in diff:
+            diffVec.append(vec)
+
+        energy = [landmark.state.energy for landmark in world.landmarks]
+
         result = [agent.state.p_vel] + [agent.state.p_pos] + \
-            other_pos + other_speed + [self.energy] + [diff]
+            other_pos + other_speed + [energy] + diffVec
 
         return np.concatenate(result)
         # return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + other_pos)
@@ -265,7 +254,8 @@ class Scenario(BaseScenario):
 
     # 检测是否完成覆盖任务
     def done(self, agent, world):
-        self.coverage = 1 - np.sum(self.energy) / \
+        energy = [landmark.state.energy for landmark in world.landmarks]
+        self.coverage = 1 - np.sum(energy) / \
             (self.coverCount * self.coverpointE)
         if self.coverage == 1.0:
             return True

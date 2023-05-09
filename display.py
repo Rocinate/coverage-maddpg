@@ -21,7 +21,6 @@ def make_env(scenario_name, arglist):
     else:
         env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation,
                             done_callback=scenario.done, info_callback=scenario.info, safe_control=False)
-        # env = MultiAgentEnv(world, scenario.reset_world, scenario.reward, scenario.observation)
     return env
 
 

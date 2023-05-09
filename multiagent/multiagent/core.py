@@ -157,6 +157,21 @@ class World(object):
         # update agent state
         for agent in self.agents:
             self.update_agent_state(agent)
+        # update landmark state
+        for landmark in self.landmarks:
+            self.update_landmark_state(landmark)
+
+    def update_landmark_state(self, landmark):
+        origin = landmark.state.energy
+        # 能量为0，没必要update
+        if origin == 0:
+            landmark.state.diff = 0
+            return
+        # 查看是否需要更新
+        for agent in self.agents:
+            if np.linalg.norm(landmark.state.p_pos - agent.state.p_pos) < agent.r and landmark.state.energy > 0:
+                landmark.state.energy -= 1
+        landmark.state.diff = origin - landmark.state.energy
 
     # gather agent action forces
     def apply_action_force(self, p_force):
@@ -223,8 +238,7 @@ class World(object):
                 agent.c_noise if agent.c_noise else 0.0
             agent.state.c = agent.action.c + noise
 
-            # get collision forces for any contact between two entities
-
+    # get collision forces for any contact between two entities
     def get_collision_force(self, entity_a, entity_b):
         if (not entity_a.collide) or (not entity_b.collide):
             return [None, None]  # not a collider
